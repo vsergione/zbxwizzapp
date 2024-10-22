@@ -1,0 +1,5 @@
+zbx_*.txt
+tmp*.*
+procedure.txt
+.idea
+procedures
