@@ -3,18 +3,21 @@
 // Modules to control application life and create native browser window
 const { app, BrowserWindow } = require('electron')
 const path = require('node:path')
-
+app.commandLine.appendSwitch('disable-http2')
+app.commandLine.appendSwitch('ignore-certificate-errors')
 const createWindow = () => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    menuBarVisible: false,
     webPreferences: {
         contextIsolation: true,
         nodeIntegration: false,
         nodeIntegrationInWorker: false
     }
   })
+    mainWindow.menuBarVisible = false;
 
   // and load the index.html of the app.
   mainWindow.loadFile('static/index.html')
