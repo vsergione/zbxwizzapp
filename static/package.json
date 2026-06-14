@@ -1,16 +1,12 @@
 {
-  "dependencies": {
-    "ace-builds": "^1.36.2",
-    "font-awesome": "^4.7.0",
-    "jquery": "^3.7.1",
-    "jqueryui": "^1.11.1",
-    "jsoneditor": "^10.1.0",
-    "komponentor": "github:vsergione/komponentor"
+  "private": true,
+  "description": "Dev-only tooling to vendor third-party assets into assets/vendor/",
+  "scripts": {
+    "vendor": "node scripts/vendor-deps.mjs"
   },
   "devDependencies": {
-    "electron": "^32.2.0"
-  },
-  "scripts": {
-    "start": "electron ."
+    "ace-builds": "1.36.2",
+    "font-awesome": "4.7.0",
+    "xlsx": "0.18.5"
   }
 }

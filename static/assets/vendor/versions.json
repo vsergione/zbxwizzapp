@@ -1,0 +1,18 @@
+{
+  "updated": "2026-06-14",
+  "zbxwizz": "1.0.1",
+  "vendoredViaNpm": {
+    "ace-builds": "1.36.2",
+    "font-awesome": "4.7.0",
+    "xlsx": "0.18.5"
+  },
+  "bundledInAssets": {
+    "jquery": "3.7.1",
+    "jqueryui": "1.11.1",
+    "bootstrap": "3.x",
+    "select2": "4.x",
+    "papaparse": "5.x",
+    "jsoneditor": "10.1.0",
+    "colResizable": "1.6"
+  }
+}

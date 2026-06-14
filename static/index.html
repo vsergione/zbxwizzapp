@@ -2,6 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="assets/css/select2.min.css">
     <link rel="stylesheet" href="assets/style.css">
@@ -10,78 +11,16 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=SUSE:wght@100..800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="node_modules/font-awesome/css/font-awesome.min.css">
-    <style>
-        #worksheets{
-            font-family: "SUSE", sans-serif;
-            font-optical-sizing: auto;
-            font-style: normal;
-
-        }
-        #worksheets td,#worksheets th{
-            vertical-align: top;
-        }
-        #worksheets td{
-            /*max-width: 400px;*/
-            /*white-space: normal;*/
-            overflow: hidden;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            word-break: break-word;
-            /*overflow: scroll;*/
-        }
-        .compress{
-            /*width: 50px !important;*/
-            max-width: 70px !important;
-        }
-        .pre{
-            background-color: rgb(199, 201, 211);
-            margin-top: 5px;
-            margin-bottom: 5px;
-            padding: 5px;
-        }
-        .filter.dropdown.show{
-            min-width: 200px;
-            width: 100%;
-        }
-        .transform.active{
-            min-width: 400px;
-        }
-        #draggableModal{ position: absolute; width: 600px;  top: 50px; left: 50px; z-index: 1000}
-        #draggableModal .card-body{
-            overflow: auto;
-        }
-        #draggableModal>*{
-            padding: 10px;
-        }
-        #editor {
-            width: 100%;
-            height: 400px;
-        }
-        table td:first-child{
-            width: 60px !important;
-            min-width: 60px !important;
-            position: sticky;
-            left: 0;
-        }
-        .compressed{
-            max-width: 60px;
-        }
-        table td:nth-child(2){
-            position: sticky;
-            left: 60px;
-            background-color: white;
-        }
-
-    </style>
+    <link rel="stylesheet" href="assets/vendor/font-awesome/css/font-awesome.min.css">
 </head>
 <body>
-    <div style="width: 100vw; height: 100vh; display: flex;flex-direction:column;">
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark d-flex">
+    <div class="app-layout">
+        <nav class="navbar navbar-expand-lg app-navbar d-flex">
+            <span class="app-brand">ZbxWizz <span class="app-brand-sub">workbench</span></span>
             <div class="flex-grow-1">
                 <ul class="navbar-nav mr-auto">
                     <li class="nav-item dropdown">
-                        <a class="nav-link active dropdown-toggle btn btn-secondary" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
                             Environment
                         </a>
                         <div class="dropdown-menu">
@@ -91,7 +30,7 @@
                         </div>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link active dropdown-toggle btn btn-secondary" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
                             Import data
                         </a>
                         <div class="dropdown-menu">
@@ -103,16 +42,17 @@
                     </li>
 
                     <li class="nav-item dropdown">
-                        <a class="nav-link active dropdown-toggle btn btn-secondary" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
                             Export data
                         </a>
                         <div class="dropdown-menu">
-                            <a class="dropdown-item" role="button"  href="#" onclick="prompt_save_data()">Export to CSV</a>
-                            <a class="dropdown-item" role="button" onclick="alert('Not yet implemented')">Export JSON</a>
+                            <a class="dropdown-item" role="button" href="#" onclick="prompt_export_data('csv')">Export to CSV</a>
+                            <a class="dropdown-item" role="button" href="#" onclick="prompt_export_data('json')">Export to JSON</a>
+                            <a class="dropdown-item" role="button" href="#" onclick="prompt_export_data('xlsx')">Export to Excel</a>
                         </div>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link active dropdown-toggle btn btn-secondary" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
                             Zabbix ops
                         </a>
                         <div class="dropdown-menu">
@@ -121,7 +61,7 @@
                         </div>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link active dropdown-toggle btn btn-secondary" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
                             Table structure
                         </a>
                         <div class="dropdown-menu">
@@ -130,14 +70,14 @@
                         </div>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active btn btn-secondary" href="#" role="button" onclick="worksheets.reset()">Clear data</a>
+                        <a class="nav-link" href="#" role="button" onclick="worksheets.reset()">Clear data</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active btn btn-secondary" href="#" role="button" onclick="autosave(true)"><i class="fa fa-save"></i></a>
+                        <a class="nav-link nav-link-icon" href="#" role="button" onclick="autosave(true)" title="Save"><i class="fa fa-save"></i></a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link active btn btn-secondary" href="#" role="button" onclick="open_play_editor()"><i class="fa fa-play"></i></a>
+                        <a class="nav-link nav-link-icon" href="#" role="button" onclick="open_play_editor()" title="Script player"><i class="fa fa-play"></i></a>
                     </li>
 
     
@@ -147,24 +87,22 @@
             <div><a class="nav-link" href="#"  role="button" data-toggle="modal" data-target="#zbxConfigModal"><img src="assets/zbx_logo.png" width="30" id="zbxLogo" class="notConnected" alt="API Conn"></a></div>
         </nav>
         <div class="tab-content" id="worksheets"></div>
-        <footer class="footer bg-secondary border-top border-dark">
-            <div class="container-fluid p-1 d-flex" >
-                <div class="flex-grow-1" style="overflow: auto;">
-
-                    <div class="d-inline-block">
-                        <ul class="nav nav-pills" id="sheetSelector" role="tablist" data-lastassigned="1"></ul>
+        <footer class="footer app-footer">
+            <div class="container-fluid app-footer-inner d-flex">
+                <div class="app-sheet-bar flex-grow-1">
+                    <div class="app-sheet-tabs-scroll" id="sheetTabsScroll">
+                        <ul class="nav app-sheet-tabs" id="sheetSelector" role="tablist" data-lastassigned="1"></ul>
                     </div>
-                    <button onclick="worksheets.new_sheet()">[+] New sheet</button>
-                    <button onclick="worksheets.delete_sheet()">[-] Remove current sheet</button>
+                    <span class="app-sheet-actions">
+                        <button class="btn btn-sm app-sheet-new-btn" type="button" onclick="worksheets.new_sheet()" title="New sheet" aria-label="New sheet"><i class="fa fa-plus"></i></button>
+                    </span>
                 </div>
-                <div onclick="worksheets.update_stats()" style="min-width: 250px !important;">
-                    <span class="badge badge-light mr-1">Total: <span class="badge badge-secondary" id="totalRecs">123</span></span>
-                    <span class="badge badge-light mr-1">Selected: <span class="badge badge-success" id="totalSelected">123</span></span>
-                    <span class="badge badge-light mr-1">Visible: <span class="badge badge-danger" id="totalVisible">123</span></span>
+                <div class="app-stats" onclick="worksheets.update_stats()">
+                    <span class="app-stat">Total <span class="app-stat-value" id="totalRecs">0</span></span>
+                    <span class="app-stat">Selected <span class="app-stat-value stat-selected" id="totalSelected">0</span></span>
+                    <span class="app-stat">Visible <span class="app-stat-value stat-visible" id="totalVisible">0</span></span>
                 </div>
-    <!--            <button onclick="worksheets.reset()">[x] Reset</button>-->
             </div>
-            
         </footer>
     </div>
 
@@ -327,7 +265,7 @@
         </form>
     </div>
     <div class="modal" id="importJSModal">
-        <form id="importJsForm" disabled="">
+        <form id="importJsForm">
             <div class="modal-dialog modal-dialog-scrollable modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -521,15 +459,16 @@
     </div>
     <div id="warning">
         <div class="vertical-center">
-            <div class="d-inline-block text-center bg-light rounded p-5" style="width: 500px">
-                <span style="font-size: 100px">&#x2620;</span>
-                <h3 class="text-danger">Warning</h3>
-                <p><strong>ZbxWizz</strong> is a very powerfull tool to manage large scale (and small as well)  <strong>Zabbix&trade;</strong> instalations.</p>
-                <p>You can save a lot of time and get your Bo$$ appreciation (and eventually a raise or a bonus) or you can sign your death sentence by pushing the wrong commands</p>
-                <p>As with great power comes great responsibility use it wisely (and on your own risk)! </p>
-                <p>So wich pill will you choose?</p>
-                <button class="badge-pill badge-danger" onclick="localStorage.setItem('userlevel','courageous');run()">Red pill (be brave!)</button>
-                <button class="badge-pill badge-primary" onclick="alert('Enjoy the stake!');window.close()">Blue pill (stay safe!)</button>
+            <div class="d-inline-block text-center">
+                <span style="font-size: 4rem; line-height: 1">&#x2620;</span>
+                <h3 class="text-danger">Proceed with caution</h3>
+                <p><strong>ZbxWizz</strong> is a powerful tool for managing large-scale (and small) <strong>Zabbix&trade;</strong> installations.</p>
+                <p>You can save a lot of time — or push the wrong commands to production. Great power, great responsibility. Use it wisely, on your own risk.</p>
+                <p class="mb-3">Which pill will you choose?</p>
+                <div class="d-flex justify-content-center gap-2" style="gap: 0.75rem">
+                    <button class="badge-pill badge-danger" onclick="localStorage.setItem('userlevel','courageous');run()">Red pill — be brave</button>
+                    <button class="badge-pill badge-primary" onclick="alert('Enjoy the stake!');window.close()">Blue pill — stay safe</button>
+                </div>
             </div>
         </div>
     </div>
@@ -541,12 +480,14 @@
 <script src="assets/js/jsoneditor.js"></script>
 <script src="assets/js/jquery-ui.js"></script>
 <script src="assets/js/colResizable-1.6.min.js"></script>
+<script src="assets/vendor/xlsx/xlsx.full.min.js"></script>
 <script src="plugins/zbx.js"></script>
+<script src="lib/sheetStore.js"></script>
 <script src="lib/datatable.js"></script>
 <script src="lib/worksheets.js"></script>
 <script src="lib/zbxwizz.js"></script>
-<script src="node_modules/ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
-<script src="node_modules/ace-builds/src-noconflict/ext-language_tools.js"></script>
+<script src="assets/vendor/ace/ace.js" type="text/javascript" charset="utf-8"></script>
+<script src="assets/vendor/ace/ext-language_tools.js"></script>
 
 
 <script>
@@ -577,43 +518,8 @@
         modal.show();
     }
 
-    function prompt_save_data() {
-        let $el = $(`
-        <div>
-            What do you want to export
-            <select>
-                    <option value="">all records</option>
-                    <option value="selected">only selected</option>
-                    <option value="visible">only visible</option>
-                </select>  
-                </div>
-            `);
-        dragable_modal({
-            title:"Export CSV",
-            body: $el,
-            buttons:[
-                {
-                    text: "Export",
-                    action: ()=>{
-                        console.log($el.children("select").val());
-                        switch($el.children("select").val()) {
-                            case "selected":
-                                save_data(row=>row.isSelected);
-                                break;
-                            case "visible":
-                                save_data(row=>!row.isHidden);
-                                break;
-                            default: 
-                                save_data();
-                        }
-                    },
-                    class: "primary"
-                }
-            ]
-        });
-    }
-
     function open_play_editor(    ) {
+        ace.config.set('basePath', 'assets/vendor/ace');
         ace.require("ace/ext/language_tools");
         let editor = ace.edit("editor");
         editor.session.setMode("ace/mode/javascript");

@@ -525,15 +525,19 @@ class DataTable {
     #el;
     #thead;
     #tbody;
+    #scrollWrap;
     #container;
     #minCols;
     #fields = [];
     fieldsOrder = {};
     columnFields = [];
     #name;
+    #saveTimer = null;
+    #saveDelay = 1000;
     scrollX=0;
     scrollY=0;
     unselect_cells() {
+        if (!this.#tbody) return;
         this.#tbody.find("td.active").removeClass("active")
     }
 
@@ -684,21 +688,48 @@ class DataTable {
     get cells() {
         return this.rows.map(row=>row.cells);
     }
-    #setup(){
+    #emptyStateTpl = `
+        <div class="sheet-empty">
+            <div class="sheet-empty-card">
+                <div class="sheet-empty-icon"><i class="fa fa-table"></i></div>
+                <h2 class="sheet-empty-title">No data yet</h2>
+                <p class="sheet-empty-text">Import a dataset to enrich, transform, and push to Zabbix — or start from a saved environment.</p>
+                <div class="sheet-empty-actions">
+                    <button class="btn btn-primary" type="button" data-toggle="modal" data-target="#importCsvModal">
+                        <i class="fa fa-file-text-o"></i> Import CSV
+                    </button>
+                    <button class="btn btn-outline-primary" type="button" data-toggle="modal" data-target="#importZbxModal">
+                        <i class="fa fa-cloud-download"></i> From Zabbix
+                    </button>
+                    <button class="btn btn-outline-secondary" type="button" data-toggle="modal" data-target="#importJSModal">
+                        <i class="fa fa-code"></i> JavaScript
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    #setup(empty = false){
         this.#container.removeData("dt").data("dt",this).empty();
-        this.#el = $("<table class='dataTable'>").appendTo(this.#container).data("sheet",this);
+        if (empty) {
+            $(this.#emptyStateTpl).appendTo(this.#container);
+            this.#el = null;
+            this.#thead = null;
+            this.#tbody = null;
+            this.#scrollWrap = null;
+            return;
+        }
+        this.#scrollWrap = $("<div class='sheet-table-scroll'>").appendTo(this.#container);
+        this.#el = $("<table class='dataTable'>").appendTo(this.#scrollWrap).data("sheet",this);
         this.#thead = $("<thead>").appendTo(this.#el);
         this.#tbody = $("<tbody>").appendTo(this.#el);
-        $("<tr><td style='height: 500px;' align='center' valign='middle'>No data<br>"+
-        "<button onclick='' style='width: 200px !important; display: inline-block  !important;' data-toggle='modal' data-target='#importCsvModal'>Import from CSV</button>"+
-        "<button onclick='' style='width: 200px !important; display: inline-block  !important;' data-toggle='modal' data-target='#importZbxModal'>Import from Zabbix</button></td></tr>").appendTo(this.#tbody);
     }
 
     constructor(name,container,minCols=30,data=null) {
         this.#name = name;
         this.#minCols = minCols;
         this.#container = $(container);
-        this.#setup();
+        this.#setup(true);
 
         if(!data || !data.records.length) return ;
 
@@ -738,7 +769,7 @@ class DataTable {
         if(!newName)
             newName = "col"+colIdx;
 
-        if(Object.hasOwnProperty(this.#cols,newName)){
+        if (Object.hasOwn(this.fieldsOrder, newName)) {
             throw "Duplicate field name";
         }
 
@@ -763,14 +794,25 @@ class DataTable {
     }
 
     
-    save() {
+    save(immediate = false) {
+        if (immediate) {
+            clearTimeout(this.#saveTimer);
+            this.#saveTimer = null;
+            return this.flushSave();
+        }
+        clearTimeout(this.#saveTimer);
+        this.#saveTimer = setTimeout(() => this.flushSave(), this.#saveDelay);
+        return this;
+    }
+
+    flushSave() {
+        clearTimeout(this.#saveTimer);
+        this.#saveTimer = null;
         let data = {
             records: this.export(),
             fields: this.#fields,
         };
-
-        localStorage.setItem("sheet-"+this.#name+"-data",JSON.stringify(data));
-        return this;
+        return sheetStore.setSheet(this.#name, data).catch(err => sheetStore.onSaveError(err));
     }
     /**
      * 
@@ -856,7 +898,7 @@ class DataTable {
             records.forEach((record,rowIdx)=>{
                 this.add_row(fields,record,rowIdx);
             });
-            this.save();
+            this.save(true);
             resolve();
         }));
     }
@@ -907,8 +949,10 @@ class DataTable {
 
     move_col(colIdx,newColIdx) {
         colIdx = colIdx*1;
-        if(colIdx===0 && direction==="left")
+        newColIdx = newColIdx*1;
+        if (newColIdx < 0) {
             return;
+        }
         this.#rows.forEach(
             /**
              * @param {Row} row
@@ -930,10 +974,10 @@ class DataTable {
         swapCol.attr("data-col",colIdx).find(".colnum .colno").text(colIdx)
     }
     rename(new_name) {
-        localStorage.removeItem("sheet-"+this.#name+"-data");
+        let oldName = this.#name;
         this.#name = new_name;
-        this.save();
-
+        sheetStore.removeSheet(oldName).catch(err => sheetStore.onSaveError(err));
+        this.save(true);
     }
 
     get visibleRows() {
@@ -944,8 +988,10 @@ class DataTable {
     }
 
     remove() {
+        clearTimeout(this.#saveTimer);
+        this.#saveTimer = null;
         this.#container.remove();
-        localStorage.removeItem("sheet-"+this.#name+"-data");
+        sheetStore.removeSheet(this.#name).catch(err => sheetStore.onSaveError(err));
     }
     
 

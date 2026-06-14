@@ -1,13 +1,12 @@
 {
   "name": "zbxwizz",
-  "version": "1.0.0",
-  "description": "Scriptable data viewer in table format to be used for ETL (Extract-Transform-Load) operations",
-  "main": "main.js",
+  "version": "1.0.1",
+  "private": true,
+  "description": "Browser-based ETL workbench for the Zabbix API (static web app in static/)",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "electron-forge start",
-    "package": "electron-forge package",
-    "make": "electron-forge make"
+    "release": "node scripts/release.mjs",
+    "release:status": "node scripts/release.mjs status",
+    "release:package": "node scripts/release.mjs package"
   },
   "keywords": [
     "Zabbix",
@@ -18,23 +17,8 @@
     "Excel",
     "data import",
     "data transformation",
-    "data augmentation",
     "data export"
   ],
   "author": "Sergiu Voicu",
-  "license": "ISC",
-  "devDependencies": {
-    "@electron-forge/cli": "^7.5.0",
-    "@electron-forge/maker-deb": "^7.5.0",
-    "@electron-forge/maker-rpm": "^7.5.0",
-    "@electron-forge/maker-squirrel": "^7.5.0",
-    "@electron-forge/maker-zip": "^7.5.0",
-    "@electron-forge/plugin-auto-unpack-natives": "^7.5.0",
-    "@electron-forge/plugin-fuses": "^7.5.0",
-    "@electron/fuses": "^1.8.0",
-    "electron": "^32.2.0"
-  },
-  "dependencies": {
-    "electron-squirrel-startup": "^1.0.1"
-  }
+  "license": "ISC"
 }

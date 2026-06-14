@@ -1,0 +1,373 @@
+{
+    "backgroundid": "0",
+    "expand_macros": "0",
+    "expandproblem": "0",
+    "grid_align": "1",
+    "grid_show": "1",
+    "grid_size": "20",
+    "height": "1200",
+    "highlight": "0",
+    "iconmap": [],
+    "iconmapid": "0",
+    "label_format": "1",
+    "label_location": "0",
+    "label_string_host": "",
+    "label_string_hostgroup": "",
+    "label_string_image": "",
+    "label_string_map": "",
+    "label_string_trigger": "",
+    "label_type": "0",
+    "label_type_host": "0",
+    "label_type_hostgroup": "2",
+    "label_type_image": "0",
+    "label_type_map": "0",
+    "label_type_trigger": "2",
+    "lines": [],
+    "markelements": "0",
+    "name": "Germany - Wind Onshore - CompanyConnect - Bartelsdorf A",
+    "private": "1",
+    "selements": [
+        {
+            "areatype": "0",
+            "elements": [
+                {
+                    "hostid": "16580"
+                }
+            ],
+            "elementsubtype": "0",
+            "elementtype": "0",
+            "evaltype": "0",
+            "height": "200",
+            "iconid_disabled": "210",
+            "iconid_maintenance": "0",
+            "iconid_off": "211",
+            "iconid_on": "207",
+            "label": "COCO-Router\r\n{HOST.IP}",
+            "label_location": "-1",
+            "permission": 2,
+            "selementid": "4018",
+            "sysmapid": "289",
+            "tags": [],
+            "urls": [],
+            "use_iconmap": "0",
+            "viewtype": "0",
+            "width": "200",
+            "x": "355",
+            "y": "816"
+        },
+        {
+            "areatype": "0",
+            "elements": [
+                {
+                    "hostid": "16576"
+                }
+            ],
+            "elementsubtype": "0",
+            "elementtype": "0",
+            "evaltype": "0",
+            "height": "200",
+            "iconid_disabled": "210",
+            "iconid_maintenance": "0",
+            "iconid_off": "211",
+            "iconid_on": "207",
+            "label": "{HOST.NAME}\r\n{HOST.IP}",
+            "label_location": "-1",
+            "permission": 2,
+            "selementid": "4023",
+            "sysmapid": "289",
+            "tags": [],
+            "urls": [],
+            "use_iconmap": "0",
+            "viewtype": "0",
+            "width": "200",
+            "x": "375",
+            "y": "396"
+        },
+        {
+            "areatype": "0",
+            "elements": [
+                {
+                    "hostid": "16578"
+                }
+            ],
+            "elementsubtype": "0",
+            "elementtype": "0",
+            "evaltype": "0",
+            "height": "200",
+            "iconid_disabled": "210",
+            "iconid_maintenance": "0",
+            "iconid_off": "211",
+            "iconid_on": "207",
+            "label": "{HOST.NAME}\r\n{HOST.IP}",
+            "label_location": "-1",
+            "permission": 2,
+            "selementid": "4026",
+            "sysmapid": "289",
+            "tags": [],
+            "urls": [],
+            "use_iconmap": "0",
+            "viewtype": "0",
+            "width": "200",
+            "x": "175",
+            "y": "396"
+        },
+        {
+            "areatype": "0",
+            "elements": [
+                {
+                    "hostid": "10131"
+                }
+            ],
+            "elementsubtype": "0",
+            "elementtype": "0",
+            "evaltype": "0",
+            "height": "200",
+            "iconid_disabled": "210",
+            "iconid_maintenance": "0",
+            "iconid_off": "211",
+            "iconid_on": "207",
+            "label": "{HOST.name}\r\n{HOST.IP}",
+            "label_location": "-1",
+            "permission": 2,
+            "selementid": "12690",
+            "sysmapid": "289",
+            "tags": [],
+            "urls": [],
+            "use_iconmap": "0",
+            "viewtype": "0",
+            "width": "200",
+            "x": "515",
+            "y": "816"
+        },
+        {
+            "areatype": "0",
+            "elements": [
+                {
+                    "hostid": "10211"
+                }
+            ],
+            "elementsubtype": "0",
+            "elementtype": "0",
+            "evaltype": "0",
+            "height": "200",
+            "iconid_disabled": "210",
+            "iconid_maintenance": "0",
+            "iconid_off": "211",
+            "iconid_on": "207",
+            "label": "{HOST.NAME}\r\n{HOST.IP}",
+            "label_location": "-1",
+            "permission": 2,
+            "selementid": "12691",
+            "sysmapid": "289",
+            "tags": [],
+            "urls": [],
+            "use_iconmap": "0",
+            "viewtype": "0",
+            "width": "200",
+            "x": "535",
+            "y": "396"
+        },
+        {
+            "areatype": "0",
+            "elements": [
+                {
+                    "hostid": "10130"
+                }
+            ],
+            "elementsubtype": "0",
+            "elementtype": "0",
+            "evaltype": "0",
+            "height": "200",
+            "iconid_disabled": "210",
+            "iconid_maintenance": "0",
+            "iconid_off": "211",
+            "iconid_on": "207",
+            "label": "{HOST.NAME}\r\n{HOST.IP}",
+            "label_location": "-1",
+            "permission": 2,
+            "selementid": "12692",
+            "sysmapid": "289",
+            "tags": [],
+            "urls": [],
+            "use_iconmap": "0",
+            "viewtype": "0",
+            "width": "200",
+            "x": "435",
+            "y": "616"
+        }
+    ],
+    "severity_min": "0",
+    "shapes": [
+        {
+            "background_color": "FBE9E7",
+            "border_color": "000000",
+            "border_type": "0",
+            "border_width": "2",
+            "font": "9",
+            "font_color": "000000",
+            "font_size": "13",
+            "height": "154",
+            "sysmap_shapeid": "506",
+            "text": "IT Service Nord: Remko Pape\r\nE-Mail: service.sittensen@enercon.de",
+            "text_halign": "1",
+            "text_valign": "1",
+            "type": "0",
+            "width": "242",
+            "x": "49",
+            "y": "73",
+            "zindex": "0"
+        },
+        {
+            "background_color": "FFFFFF",
+            "border_color": "000000",
+            "border_type": "0",
+            "border_width": "2",
+            "font": "9",
+            "font_color": "000000",
+            "font_size": "15",
+            "height": "141",
+            "sysmap_shapeid": "507",
+            "text": "Bartelsdorf - 3343\r\nSMS-Schaltmodul\r\nRWE Parkbetreuer:Andrzej Nowak\r\nTel. +49 511 28832 85\r\nMobil: 01522-9421702",
+            "text_halign": "1",
+            "text_valign": "0",
+            "type": "0",
+            "width": "249",
+            "x": "605",
+            "y": "79",
+            "zindex": "0"
+        },
+        {
+            "background_color": "F0F0F0",
+            "border_color": "000000",
+            "border_type": "0",
+            "border_width": "2",
+            "font": "9",
+            "font_color": "000000",
+            "font_size": "11",
+            "height": "150",
+            "sysmap_shapeid": "514",
+            "text": "I&C",
+            "text_halign": "1",
+            "text_valign": "1",
+            "type": "0",
+            "width": "870",
+            "x": "15",
+            "y": "355",
+            "zindex": "4"
+        },
+        {
+            "background_color": "FCE4EC",
+            "border_color": "000000",
+            "border_type": "0",
+            "border_width": "2",
+            "font": "9",
+            "font_color": "000000",
+            "font_size": "13",
+            "height": "107",
+            "sysmap_shapeid": "515",
+            "text": "Connectivity",
+            "text_halign": "1",
+            "text_valign": "1",
+            "type": "0",
+            "width": "461",
+            "x": "239",
+            "y": "776",
+            "zindex": "0"
+        },
+        {
+            "background_color": "FFB74D",
+            "border_color": "000000",
+            "border_type": "1",
+            "border_width": "2",
+            "font": "9",
+            "font_color": "000000",
+            "font_size": "18",
+            "height": "50",
+            "sysmap_shapeid": "2119",
+            "text": "{MAP.NAME}",
+            "text_halign": "0",
+            "text_valign": "0",
+            "type": "0",
+            "width": "614",
+            "x": "143",
+            "y": "5",
+            "zindex": "6"
+        },
+        {
+            "background_color": "C8E6C9",
+            "border_color": "000000",
+            "border_type": "0",
+            "border_width": "2",
+            "font": "9",
+            "font_color": "000000",
+            "font_size": "11",
+            "height": "150",
+            "sysmap_shapeid": "2943",
+            "text": "INFRASCTRUCTURE",
+            "text_halign": "1",
+            "text_valign": "1",
+            "type": "0",
+            "width": "870",
+            "x": "15",
+            "y": "575",
+            "zindex": "4"
+        }
+    ],
+    "show_suppressed": "0",
+    "show_unack": "0",
+    "sysmapid": "289",
+    "userGroups": [
+        {
+            "permission": "2",
+            "sysmapusrgrpid": "1319",
+            "usrgrpid": "13"
+        },
+        {
+            "permission": "2",
+            "sysmapusrgrpid": "1317",
+            "usrgrpid": "14"
+        },
+        {
+            "permission": "2",
+            "sysmapusrgrpid": "1316",
+            "usrgrpid": "29"
+        },
+        {
+            "permission": "2",
+            "sysmapusrgrpid": "1320",
+            "usrgrpid": "37"
+        },
+        {
+            "permission": "2",
+            "sysmapusrgrpid": "1323",
+            "usrgrpid": "38"
+        },
+        {
+            "permission": "2",
+            "sysmapusrgrpid": "3015",
+            "usrgrpid": "40"
+        },
+        {
+            "permission": "2",
+            "sysmapusrgrpid": "3016",
+            "usrgrpid": "41"
+        },
+        {
+            "permission": "2",
+            "sysmapusrgrpid": "1322",
+            "usrgrpid": "42"
+        },
+        {
+            "permission": "2",
+            "sysmapusrgrpid": "1321",
+            "usrgrpid": "43"
+        },
+        {
+            "permission": "2",
+            "sysmapusrgrpid": "1318",
+            "usrgrpid": "44"
+        }
+    ],
+    "userid": "111",
+    "width": "900"
+}

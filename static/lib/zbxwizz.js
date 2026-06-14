@@ -15,7 +15,7 @@ function show_modal(opts = {}) {
     }
     // set footer if present
     if (opts.footer) {
-        $modal.find(".modal-header").html(opts.footer)
+        $modal.find(".modal-footer").empty().append(opts.footer);
     }
     // set modal content
     $modal.find(".modal-body").empty().append(opts.body ? opts.body : "No content");
@@ -84,6 +84,67 @@ function import_from_api (resource, tpl){
         }
     });
     
+}
+
+function normalize_import_records(records) {
+    for (let i = 0; i < records.length; i++) {
+        let rec = records[i];
+        if (rec.flds) {
+            continue;
+        }
+        let tmp = Object.assign({}, rec);
+        let flds = {};
+        Object.keys(rec).forEach(fld => {
+            flds[fld] = typeof rec[fld] === "object" ? json(rec[fld]) : rec[fld];
+        });
+        records[i] = {
+            flds: flds,
+            data: { csv: tmp }
+        };
+    }
+    return records;
+}
+
+function import_from_js(script) {
+    overlay.show();
+    return new Promise((resolve, reject) => {
+        try {
+            let ctx = { ws: worksheets ? worksheets.sheets : {}, zbx, json, obj };
+            let data;
+            with (ctx) {
+                data = eval(script);
+            }
+            if (!data || !data.fields || !data.records) {
+                reject("Script must return { fields: [], records: [] }");
+                return;
+            }
+            if (data.records.length === 0) {
+                resolve(null);
+                return;
+            }
+            normalize_import_records(data.records);
+            worksheets.get_active_sheet().reset().load_data(data.fields, data.records, 'csv');
+            resolve(data);
+        } catch (e) {
+            reject(e);
+        } finally {
+            overlay.hide();
+        }
+    });
+}
+
+function req_import_js(script, form) {
+    import_from_js(script)
+        .then((resp) => {
+            if (resp === null) {
+                show_modal({ body: 'No records returned' });
+            }
+        })
+        .catch((e) => {
+            show_modal({
+                body: 'Error running import script:<pre class="pre" style="overflow: scroll">' + script + "/ " + e + '</pre>'
+            });
+        });
 }
 
 function req_import_from_api(reqTpl, form) {
@@ -241,24 +302,280 @@ function downloadBlob(content, filename, contentType) {
     pom.href = url;
     pom.setAttribute('download', filename);
     pom.click();
+    URL.revokeObjectURL(url);
 }
 
-function save_data(filter=null) {
-    let dt = worksheets.get_active_sheet();
-    let data = dt.export(filter);
-    console.log(data);
-    csv = Papa.unparse(data.map(d=>d.flds), {
-        quotes: true, //or array of booleans
+function sanitize_export_filename(name, ext) {
+    const base = (name || 'export').replace(/[^\w.\- ]+/g, '_').trim() || 'export';
+    return `${base}.${ext}`;
+}
+
+function sanitize_excel_sheet_name(name) {
+    return (name || 'Sheet').replace(/[\\/*?:\[\]]/g, '_').substring(0, 31) || 'Sheet';
+}
+
+function get_export_filter(scope) {
+    switch (scope) {
+        case 'selected':
+            return row => row.isSelected;
+        case 'visible':
+            return row => !row.isHidden;
+        default:
+            return null;
+    }
+}
+
+function get_export_rows(dt, filter = null) {
+    return {
+        dt,
+        fields: dt.fields,
+        records: dt.export(filter),
+    };
+}
+
+function get_active_export_rows(filter = null) {
+    return get_export_rows(worksheets.get_active_sheet(), filter);
+}
+
+function build_excel_worksheet(dt, filter = null) {
+    const { fields, records } = get_export_rows(dt, filter);
+    const rows = records.map(record => {
+        const row = {};
+        fields.forEach(fld => {
+            row[fld] = record.flds[fld] ?? '';
+        });
+        return row;
+    });
+    return rows.length || fields.length
+        ? XLSX.utils.json_to_sheet(rows, { header: fields })
+        : XLSX.utils.aoa_to_sheet([]);
+}
+
+function unique_excel_sheet_tab_names(sheetIds) {
+    const used = new Set();
+    return sheetIds.map(id => {
+        let base = sanitize_excel_sheet_name(id);
+        let candidate = base;
+        let i = 2;
+        while (used.has(candidate)) {
+            const suffix = '_' + i;
+            candidate = base.substring(0, 31 - suffix.length) + suffix;
+            i++;
+        }
+        used.add(candidate);
+        return candidate;
+    });
+}
+
+function excel_export_filename(sheetIds) {
+    if (sheetIds.length === 1) {
+        return sanitize_export_filename(sheetIds[0], 'xlsx');
+    }
+    return sanitize_export_filename('zbxwizz-export', 'xlsx');
+}
+
+function save_data(filter = null) {
+    const { dt, fields, records } = get_active_export_rows(filter);
+    const csv = Papa.unparse(records.map(d => d.flds), {
+        quotes: true,
         quoteChar: '"',
         escapeChar: '"',
         delimiter: ",",
         header: true,
         newline: "\n",
-        skipEmptyLines: false, //other option is 'greedy', meaning skip delimiters, quotes, and whitespace.
-        columns: null //or array of strings
+        skipEmptyLines: false,
+        columns: fields.length ? fields : null,
     });
-    console.log(csv);
-    downloadBlob(csv, "backup.csv", "text/csv;charset=utf-8;");
+    downloadBlob(csv, sanitize_export_filename(dt.name, 'csv'), "text/csv;charset=utf-8;");
+}
+
+function save_data_json(filter = null) {
+    const { dt, fields, records } = get_active_export_rows(filter);
+    const payload = {
+        sheet: dt.name,
+        fields,
+        records,
+    };
+    const json = JSON.stringify(payload, null, 2);
+    downloadBlob(json, sanitize_export_filename(dt.name, 'json'), "application/json;charset=utf-8;");
+}
+
+function save_data_excel(filter = null, sheetIds = null) {
+    if (typeof XLSX === 'undefined') {
+        show_modal({
+            title: 'Export to Excel',
+            body: 'Excel export library is not loaded. Run <code>npm run vendor</code> in the static folder and reload.',
+        });
+        return;
+    }
+
+    if (!sheetIds || sheetIds.length === 0) {
+        sheetIds = [worksheets.get_active_sheet().name];
+    }
+
+    const wb = XLSX.utils.book_new();
+    const entries = sheetIds
+        .map(id => ({ id, dt: worksheets.sheets[id] }))
+        .filter(entry => entry.dt);
+    const tabNames = unique_excel_sheet_tab_names(entries.map(entry => entry.id));
+    entries.forEach((entry, idx) => {
+        XLSX.utils.book_append_sheet(
+            wb,
+            build_excel_worksheet(entry.dt, filter),
+            tabNames[idx]
+        );
+    });
+
+    if (wb.SheetNames.length === 0) {
+        show_modal({
+            title: 'Export to Excel',
+            body: 'No sheets selected for export.',
+        });
+        return;
+    }
+
+    XLSX.writeFile(wb, excel_export_filename(entries.map(e => e.id)));
+}
+
+function export_sheet_data(format, filter = null) {
+    switch (format) {
+        case 'csv':
+            save_data(filter);
+            break;
+        case 'json':
+            save_data_json(filter);
+            break;
+        case 'xlsx':
+            save_data_excel(filter);
+            break;
+        default:
+            console.warn('Unknown export format', format);
+    }
+}
+
+function prompt_export_excel() {
+    const sheetNames = worksheets.sheetsNames;
+    const activeName = worksheets.get_active_sheet().name;
+
+    const $body = $(`
+        <div class="excel-export-form">
+            <label class="d-block mb-2">Which rows should be exported?</label>
+            <select class="custom-select custom-select-sm row-filter-select mb-3">
+                <option value="">All records</option>
+                <option value="selected">Only selected</option>
+                <option value="visible">Only visible</option>
+            </select>
+            <label class="d-block mb-2">Which sheets?</label>
+            <div class="mb-2">
+                <label class="d-inline-block mr-3">
+                    <input type="radio" name="sheetScope" value="all" checked> All sheets
+                </label>
+                <label class="d-inline-block">
+                    <input type="radio" name="sheetScope" value="pick"> Selected sheets
+                </label>
+            </div>
+            <div class="sheet-export-list border rounded p-2 bg-light" hidden></div>
+            <div class="sheet-export-error text-danger small mt-2" hidden></div>
+        </div>
+    `);
+
+    const $list = $body.find('.sheet-export-list');
+    const $toggleAll = $('<label class="d-block mb-1 pb-1 border-bottom">')
+        .append(
+            $('<input type="checkbox" class="sheet-export-toggle-all">').prop('checked', true),
+            ' Select all'
+        );
+    $list.append($toggleAll);
+
+    sheetNames.forEach(name => {
+        $list.append(
+            $('<label class="d-block sheet-export-pick">').append(
+                $('<input type="checkbox" name="sheet" class="sheet-export-check">')
+                    .val(name)
+                    .prop('checked', name === activeName),
+                ' ',
+                $('<span>').text(name)
+            )
+        );
+    });
+
+    $body.find('[name="sheetScope"]').on('change', () => {
+        const pick = $body.find('[name="sheetScope"]:checked').val() === 'pick';
+        $list.prop('hidden', !pick);
+        $body.find('.sheet-export-error').prop('hidden', true);
+    });
+
+    $toggleAll.find('input').on('change', function () {
+        $list.find('.sheet-export-check').prop('checked', this.checked);
+    });
+
+    $list.on('change', '.sheet-export-check', () => {
+        const checks = $list.find('.sheet-export-check');
+        $toggleAll.find('input').prop(
+            'checked',
+            checks.length > 0 && checks.filter(':checked').length === checks.length
+        );
+    });
+
+    const $footer = $('<div class="text-right"></div>');
+    $footer.append(
+        $('<button type="button" class="btn btn-secondary mr-2" data-dismiss="modal">Cancel</button>'),
+        $('<button type="button" class="btn btn-primary">Export</button>').on('click', () => {
+            const filter = get_export_filter($body.find('.row-filter-select').val());
+            let sheetIds;
+            if ($body.find('[name="sheetScope"]:checked').val() === 'all') {
+                sheetIds = [...sheetNames];
+            } else {
+                sheetIds = $list.find('.sheet-export-check:checked').map((_, el) => el.value).get();
+                if (!sheetIds.length) {
+                    $body.find('.sheet-export-error')
+                        .text('Select at least one sheet to export.')
+                        .prop('hidden', false);
+                    return;
+                }
+            }
+            save_data_excel(filter, sheetIds);
+            $footer.closest('.modal').modal('hide');
+        })
+    );
+
+    show_modal({
+        title: 'Export to Excel',
+        body: $body,
+        footer: $footer,
+    });
+}
+
+function prompt_export_data(format) {
+    if (format === 'xlsx') {
+        prompt_export_excel();
+        return;
+    }
+
+    const labels = { csv: 'CSV', json: 'JSON' };
+    const $body = $(`
+        <div>
+            <label class="d-block mb-2">Which rows should be exported?</label>
+            <select class="custom-select custom-select-sm">
+                <option value="">All records</option>
+                <option value="selected">Only selected</option>
+                <option value="visible">Only visible</option>
+            </select>
+        </div>
+    `);
+    const $footer = $('<div class="text-right"></div>');
+    $footer.append(
+        $('<button type="button" class="btn btn-secondary mr-2" data-dismiss="modal">Cancel</button>'),
+        $('<button type="button" class="btn btn-primary">Export</button>').on('click', () => {
+            export_sheet_data(format, get_export_filter($body.find('select').val()));
+            $footer.closest('.modal').modal('hide');
+        })
+    );
+    show_modal({
+        title: `Export to ${labels[format] || format}`,
+        body: $body,
+        footer: $footer,
+    });
 }
 
 function transform_col(colId,expr) {
@@ -282,8 +599,8 @@ function transform_cell(cell, expr) {
         try{
             with (data) {
                 let newVal = eval(expr);
-                if (typeof newVal=="Object") {
-                    newVal = JSON.stringify(newVal)
+                if (newVal !== null && typeof newVal === "object") {
+                    newVal = JSON.stringify(newVal);
                 }
                 return newVal;
             }
@@ -408,8 +725,7 @@ function load_csv(input,dt) {
                         records: data.data,
                         fields: data.meta.fields
                     };
-                    localStorage.setItem("sheet-"+dt.container_id + "-data", JSON.stringify(data));
-                    
+
                     for(let i=0;i<data.records.length;i++) {
                         data.records[i] = {
                             flds: data.records[i]
@@ -423,8 +739,6 @@ function load_csv(input,dt) {
             }
         });
     })
-
-    console.log(a);
 }
 
 
@@ -566,15 +880,14 @@ var worksheets;
 
 function run() {
     $("#warning").remove();
-    //setTimeout(()=>alert("Pull and import is safe always, push can lead to troubles.\nBe carefull! Don't get fired... or sued."),100);
 
-    // load autosaved data
-    setTimeout(() => {
+    setTimeout(async () => {
         zbx_connect();
-        worksheets = new WorkSheets('#worksheets', '#sheetSelector');
+        worksheets = await WorkSheets.load('#worksheets', '#sheetSelector');
         $("#sheetSelector").sortable({
             stop: ()=>worksheets.reorder()
         });
+        scheduleAutosave();
     }, 300);
 }
 
@@ -649,15 +962,27 @@ function obj(str) {
 
 
 function autosave(stop=false) {
-    worksheets.save();
-    Object.keys(worksheets.sheets).forEach((name)=>{
-        worksheets.sheets[name].save();
+    if (!worksheets) return Promise.resolve();
+    return worksheets.flushAllSaves().finally(() => {
+        if (!stop) scheduleAutosave();
     });
-    if(!stop) 
-        setTimeout(autosave, 60000);
 }
 
-setTimeout(autosave, 60000);
+function scheduleAutosave() {
+    setTimeout(() => autosave(), 60000);
+}
+
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden" && worksheets) {
+        worksheets.flushAllSaves();
+    }
+});
+
+window.addEventListener("beforeunload", () => {
+    if (worksheets) {
+        worksheets.flushAllSaves();
+    }
+});
 
 
 function save_structure() {
@@ -728,13 +1053,20 @@ function download_string(filename, mime, text) {
 }
 
 function save_env() {
-    let data = {
-        worksheets: obj(localStorage.getItem("worksheets")),
-        sheets: {},
-        name: prompt("File name")
-    };
-    data.worksheets.sheets.forEach(s=>data.sheets[s]=obj(localStorage.getItem(`sheet-${s}-data`)));
-    download_string(data.name+".json","application/json",json(data));
+    let name = prompt("File name");
+    if (!name) return;
+    worksheets.flushAllSaves().then(async () => {
+        let config = await sheetStore.getConfig();
+        let data = {
+            worksheets: config ?? {},
+            sheets: {},
+            name: name
+        };
+        for (const s of data.worksheets.sheets ?? []) {
+            data.sheets[s] = await sheetStore.getSheet(s);
+        }
+        download_string(data.name + ".json", "application/json", json(data));
+    });
 }
 
 function load_env(form) {
@@ -742,16 +1074,16 @@ function load_env(form) {
     let fr = new FileReader();
     fr.addEventListener(
         "load",
-        () => {
-            // this will then display a text file
+        async () => {
             try {
                 let data = obj(fr.result);
-                // cleanup localstorage
+                await sheetStore.removeAllSheets();
+                await sheetStore.setConfig(data.worksheets);
+                for (const s of Object.keys(data.sheets)) {
+                    await sheetStore.setSheet(s, data.sheets[s]);
+                }
                 Object.keys(localStorage).filter(k=>k.match(/^sheet\-.*-data$/)).forEach(k=>localStorage.removeItem(k));
-                // load  new data
-                localStorage.setItem("worksheets",json(data.worksheets));
-                Object.keys(data.sheets).forEach(s=>localStorage.setItem("sheet-"+s+"-data",json(data.sheets[s])));
-                // reload app
+                localStorage.removeItem("worksheets");
                 window.location.reload();
             }
             catch (e) {
